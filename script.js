@@ -4,7 +4,7 @@
 // ============================================================
 
 // Backend URL
-const BACKEND_URL = "https://ai-bot-backend-ay5i.onrender.com";
+const BACKEND_URL = "https://ai-bot-backend-1-q4vg.onrender.com";
 
 // ── Conversation history for the chatbot ─────────────────────
 let conversationHistory = [];
