@@ -8,7 +8,7 @@ const OPENROUTER_API_KEY = "sk-or-v1-8bf12fc12e924cca5d6ba48dca941cf8365a3b19feb
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 // Backend proxy URL — must match your server.js port
-const BACKEND_URL = "http://localhost:3000";
+const BACKEND_URL = "https://ai-bot-backend-ay5i.onrender.com";
 
 // ── Conversation history for the chatbot ─────────────────────
 let conversationHistory = [];
