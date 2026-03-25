@@ -1,6 +1,6 @@
 // ============================================================
 // server.js — FINAL WORKING VERSION
-// Uses Hugging Face Router + Nscale SDXL provider
+// Chat + Image both handled through backend
 // ============================================================
 
 import express from "express";
@@ -21,11 +21,81 @@ app.use(express.json({ limit: "2mb" }));
 // CONFIG
 // ============================================================
 
-// Loaded from .env file — never hardcode secrets in source
 const HF_TOKEN = process.env.HF_TOKEN;
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 
-// Router endpoint from the Hugging Face model/provider panel
 const HF_IMAGE_URL = "https://router.huggingface.co/nscale/v1/images/generations";
+const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+
+// ============================================================
+// HEALTH CHECK
+// ============================================================
+
+app.get("/", (req, res) => {
+  res.send("Backend is running");
+});
+
+// ============================================================
+// CHAT ROUTE
+// ============================================================
+
+app.post("/chat", async (req, res) => {
+  try {
+    const { messages } = req.body;
+
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({
+        error: "Messages array is required",
+      });
+    }
+
+    const orResponse = await fetch(OPENROUTER_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "openai/gpt-4o-mini",
+        messages: messages,
+      }),
+    });
+
+    const rawText = await orResponse.text();
+
+    if (!orResponse.ok) {
+      console.error("OpenRouter Error:", rawText);
+      return res.status(orResponse.status).json({
+        error: rawText || "OpenRouter request failed",
+      });
+    }
+
+    let data;
+    try {
+      data = JSON.parse(rawText);
+    } catch (parseError) {
+      console.error("OpenRouter JSON Parse Error:", parseError);
+      return res.status(500).json({
+        error: "Invalid JSON response from chat provider",
+      });
+    }
+
+    const reply = data?.choices?.[0]?.message?.content;
+
+    if (!reply) {
+      return res.status(500).json({
+        error: "No reply returned from chat provider",
+      });
+    }
+
+    res.json({ reply });
+  } catch (error) {
+    console.error("Chat route error:", error);
+    res.status(500).json({
+      error: "Internal server error",
+    });
+  }
+});
 
 // ============================================================
 // IMAGE GENERATION ROUTE
@@ -35,7 +105,6 @@ app.post("/generate-image", async (req, res) => {
   try {
     const { prompt } = req.body;
 
-    // Validate prompt
     if (!prompt || !prompt.trim()) {
       return res.status(400).json({
         error: "Prompt is required",
@@ -44,7 +113,6 @@ app.post("/generate-image", async (req, res) => {
 
     console.log("Generating image for:", prompt);
 
-    // Call Hugging Face router
     const hfResponse = await fetch(HF_IMAGE_URL, {
       method: "POST",
       headers: {
@@ -58,30 +126,25 @@ app.post("/generate-image", async (req, res) => {
       }),
     });
 
-    // Read raw text first
     const rawText = await hfResponse.text();
 
-    // Handle provider/API errors
     if (!hfResponse.ok) {
       console.error("HF Error:", rawText);
-
       return res.status(hfResponse.status).json({
         error: rawText || "Hugging Face request failed",
       });
     }
 
-    // Parse JSON response
     let data;
     try {
       data = JSON.parse(rawText);
     } catch (parseError) {
-      console.error("JSON Parse Error:", parseError);
+      console.error("HF JSON Parse Error:", parseError);
       return res.status(500).json({
         error: "Invalid JSON response from image provider",
       });
     }
 
-    // Extract base64 image
     const base64Image =
       data?.data?.[0]?.b64_json ||
       data?.images?.[0]?.b64_json ||
@@ -94,15 +157,12 @@ app.post("/generate-image", async (req, res) => {
       });
     }
 
-    // Convert base64 to binary image buffer
     const imageBuffer = Buffer.from(base64Image, "base64");
 
-    // Send image back to frontend
     res.set("Content-Type", "image/png");
     res.send(imageBuffer);
   } catch (error) {
-    console.error("Server error:", error);
-
+    console.error("Image route error:", error);
     res.status(500).json({
       error: "Internal server error",
     });
@@ -114,6 +174,7 @@ app.post("/generate-image", async (req, res) => {
 // ============================================================
 
 const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
