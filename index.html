@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Chatbot &amp; Image Generator</title>
+  <meta name="description"
+    content="Chat with an AI and generate stunning images — powered by OpenRouter and Hugging Face." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <!-- ── Header ─────────────────────────────────────────────── -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">✦</span>
+        <h1>AI Chatbot &amp; Image Generator</h1>
+      </div>
+      <p class="header-sub">Powered by OpenRouter &amp; Hugging Face</p>
+    </div>
+  </header>
+
+  <!-- ── Tabs ───────────────────────────────────────────────── -->
+  <nav class="tabs" role="tablist" aria-label="App sections">
+    <button id="tab-chat" class="tab-btn active" role="tab" aria-selected="true" aria-controls="section-chat">
+      💬 Chat
+    </button>
+    <button id="tab-image" class="tab-btn" role="tab" aria-selected="false" aria-controls="section-image">
+      🎨 Image Generator
+    </button>
+  </nav>
+
+  <!-- ── Main content ───────────────────────────────────────── -->
+  <main class="app-main">
+
+    <!-- ════ CHAT SECTION ════ -->
+    <section id="section-chat" class="app-section active" role="tabpanel" aria-labelledby="tab-chat">
+      <div class="chat-card card">
+        <!-- Message list -->
+        <div id="chat-messages" class="chat-messages" aria-live="polite">
+          <!-- Welcome message injected by JS -->
+        </div>
+
+        <!-- Typing indicator (hidden by default) -->
+        <div id="typing-indicator" class="typing-indicator hidden" aria-label="AI is typing">
+          <span></span><span></span><span></span>
+        </div>
+
+        <!-- Input row -->
+        <div class="chat-input-row">
+          <textarea id="chat-input" class="chat-textarea" placeholder="Ask me anything…" rows="1"
+            aria-label="Chat message input"></textarea>
+          <button id="send-btn" class="btn btn-primary" aria-label="Send message">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+              <path d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════ IMAGE GENERATOR SECTION ════ -->
+    <section id="section-image" class="app-section hidden" role="tabpanel" aria-labelledby="tab-image">
+      <div class="image-card card">
+        <h2 class="section-title">🎨 Image Generator</h2>
+        <p class="section-desc">
+          Describe the image you want and click <strong>Generate</strong>.
+          The backend will securely call Hugging Face on your behalf.
+        </p>
+
+        <!-- Prompt input -->
+        <textarea id="image-prompt" class="img-textarea"
+          placeholder="e.g. A futuristic city at sunset, ultra-detailed, cinematic lighting…" rows="3"
+          aria-label="Image generation prompt"></textarea>
+
+        <!-- Generate button -->
+        <button id="generate-btn" class="btn btn-generate">
+          ✦ Generate Image
+        </button>
+
+        <!-- Loading state -->
+        <div id="image-loader" class="image-loader hidden" aria-label="Generating image">
+          <div class="spinner"></div>
+          <p>Generating your image… this may take ~20 seconds.</p>
+        </div>
+
+        <!-- Result area -->
+        <div id="image-result" class="image-result hidden">
+          <img id="generated-img" class="generated-img" src="" alt="AI generated image" />
+          <a id="download-btn" class="btn btn-download" download="ai-image.png">
+            ⬇ Download Image
+          </a>
+        </div>
+
+        <!-- Error message -->
+        <p id="image-error" class="error-msg hidden"></p>
+      </div>
+    </section>
+  </main>
+
+  <!-- ── Footer ─────────────────────────────────────────────── -->
+  <footer class="app-footer">
+    Built using <a href="https://openrouter.ai" target="_blank" rel="noopener">OpenRouter</a>
+    and <a href="https://huggingface.co" target="_blank" rel="noopener">Hugging Face</a> APIs
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+
+</html>
