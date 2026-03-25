@@ -4,7 +4,7 @@
 
 // ── API Configuration ────────────────────────────────────────
 // Replace with your NEW OpenRouter API key
-const OPENROUTER_API_KEY = "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";
+const OPENROUTER_API_KEY = "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";
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 // Backend proxy URL — must match your server.js port
