@@ -1,13 +1,9 @@
 // ============================================================
-// script.js — Frontend logic for AI Chatbot & Image Generator
+// script.js — FINAL FRONTEND VERSION
+// Chat + Image both use backend
 // ============================================================
 
-// ── API Configuration ────────────────────────────────────────
-// Replace with your NEW OpenRouter API key
-const OPENROUTER_API_KEY = "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";
-const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
-
-// Backend proxy URL — must match your server.js port
+// Backend URL
 const BACKEND_URL = "https://ai-bot-backend-ay5i.onrender.com";
 
 // ── Conversation history for the chatbot ─────────────────────
@@ -82,7 +78,7 @@ function setChatLoading(loading) {
   setTyping(loading);
 }
 
-// ── Send chat message ─────────────────────────────────────────
+// ── Send chat message via backend ─────────────────────────────
 async function sendMessage() {
   const userText = chatInput.value.trim();
   if (!userText) return;
@@ -96,27 +92,23 @@ async function sendMessage() {
   setChatLoading(true);
 
   try {
-    const response = await fetch(OPENROUTER_URL, {
+    const response = await fetch(`${BACKEND_URL}/chat`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
-        "HTTP-Referer": window.location.href,
-        "X-Title": "AI Chatbot App",
       },
       body: JSON.stringify({
-        model: "openai/gpt-4o-mini",
         messages: conversationHistory,
       }),
     });
 
+    const data = await response.json().catch(() => ({}));
+
     if (!response.ok) {
-      const errData = await response.json().catch(() => ({}));
-      throw new Error(errData?.error?.message || `API error: ${response.status}`);
+      throw new Error(data?.error || `Server error: ${response.status}`);
     }
 
-    const data = await response.json();
-    const botReply = data?.choices?.[0]?.message?.content?.trim();
+    const botReply = data?.reply?.trim();
 
     if (!botReply) {
       throw new Error("Received an empty response from the AI.");
@@ -128,7 +120,7 @@ async function sendMessage() {
     console.error("Chat error:", err);
     appendMessage(
       "bot",
-      `⚠️ ${err.message}\n\nMake sure your OpenRouter API key is correct.`,
+      `⚠️ ${err.message}\n\nMake sure:\n• Backend is deployed and running\n• OPENROUTER_API_KEY is set in backend env vars`,
       true
     );
   } finally {
@@ -179,7 +171,6 @@ async function generateImage() {
   setImageLoading(true);
 
   try {
-    // Frontend calls OUR backend, not Hugging Face directly
     const response = await fetch(`${BACKEND_URL}/generate-image`, {
       method: "POST",
       headers: {
@@ -205,7 +196,7 @@ async function generateImage() {
   } catch (err) {
     console.error("Image generation error:", err);
     showImageError(
-      `${err.message}\n\nMake sure:\n• The backend is running (npm start)\n• Your HF_TOKEN in server.js is valid.`
+      `${err.message}\n\nMake sure:\n• Backend is deployed and running\n• HF_TOKEN is set in backend env vars\n• Backend CORS allows your frontend URL`
     );
   } finally {
     setImageLoading(false);
@@ -214,7 +205,6 @@ async function generateImage() {
 
 generateBtn.addEventListener("click", generateImage);
 
-// Optional: Ctrl+Enter / Cmd+Enter for image generation
 imagePrompt.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
     e.preventDefault();
